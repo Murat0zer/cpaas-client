@@ -1,6 +1,7 @@
 package com.netas.cpaas.user;
 
 import com.netas.cpaas.CustomException;
+import com.netas.cpaas.user.model.LoginDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

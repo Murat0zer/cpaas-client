@@ -1,4 +1,4 @@
-package com.netas.cpaas.user;
+package com.netas.cpaas.user.model;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

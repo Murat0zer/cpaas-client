@@ -1,7 +1,7 @@
 package com.netas.cpaas.config;
 
 import com.netas.cpaas.CustomException;
-import com.netas.cpaas.user.Role;
+import com.netas.cpaas.user.model.Role;
 import com.netas.cpaas.user.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

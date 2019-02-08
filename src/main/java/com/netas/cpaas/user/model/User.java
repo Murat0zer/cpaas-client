@@ -1,4 +1,4 @@
-package com.netas.cpaas.user;
+package com.netas.cpaas.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +38,9 @@ public class User implements UserDetails {
     private Set<Role> roles;
 
     private String token;
+
+    @Embedded
+    private NvsUser nvsUser;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

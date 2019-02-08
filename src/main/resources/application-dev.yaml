@@ -25,3 +25,5 @@ spring:
     username: sa
     password:
 
+
+api.base.url: https://nvs-cpaas-oauth.kandy.io/cpaas

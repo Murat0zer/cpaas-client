@@ -1,7 +1,6 @@
 package com.netas.cpaas.config;
 
-import com.netas.cpaas.user.Role;
-import com.netas.cpaas.user.UserDetailsServiceImpl;
+import com.netas.cpaas.user.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
