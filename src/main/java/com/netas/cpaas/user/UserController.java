@@ -2,10 +2,14 @@ package com.netas.cpaas.user;
 
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.user.model.LoginDto;
+import com.netas.cpaas.user.model.register.RegistrationDto;
+import com.netas.cpaas.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @AllArgsConstructor
 @RestController
@@ -24,5 +28,12 @@ public class UserController {
            return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
         }
         return ResponseEntity.ok(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
+    @PostMapping("/signup")
+    @ResponseBody
+    public ResponseEntity<Object> register(@RequestBody @Valid RegistrationDto registrationDto) {
+
+        return ResponseEntity.ok(registrationDto);
     }
 }

@@ -2,7 +2,7 @@ package com.netas.cpaas.config;
 
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.user.model.Role;
-import com.netas.cpaas.user.UserDetailsServiceImpl;
+import com.netas.cpaas.user.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

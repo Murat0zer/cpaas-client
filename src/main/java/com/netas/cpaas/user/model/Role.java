@@ -5,11 +5,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Getter
 @Entity
 @NoArgsConstructor
-public class Role implements GrantedAuthority {
+public class Role implements GrantedAuthority, Serializable {
 
     public static final Role ADMIN = new Role(RoleName.ADMIN);
     public static final Role USER = new Role(RoleName.USER);

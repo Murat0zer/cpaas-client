@@ -1,9 +1,15 @@
 package com.netas.cpaas.user.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Getter
@@ -11,15 +17,26 @@ import javax.persistence.Transient;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Embeddable
-public class NvsUser {
+@Entity
+public class NvsUser implements Serializable {
 
     @Transient
-    private NvsTokens nvsTokens;
+    private NvsTokenInfo nvsTokenInfo;
 
-    private String nvsUsername;
+    @JsonProperty("__typename")
+    private String typename;
 
-    private String nvsEmail;
+    @Id
+    @JsonProperty("id")
+    private String nvsId;
 
-    private String nvsPassword;
+    @JsonProperty("createdOn")
+    private String createdOn;
+
+    @JsonProperty("status")
+    private String status;
+
+    @Builder.Default
+    @JsonProperty("roles")
+    private Set<String> nvsRoles = new HashSet<>();
 }

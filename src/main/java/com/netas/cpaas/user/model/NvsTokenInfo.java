@@ -2,12 +2,14 @@ package com.netas.cpaas.user.model;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NvsTokens {
+public class NvsTokenInfo implements Serializable {
 
     private String accessToken;
     private long expiresIn;

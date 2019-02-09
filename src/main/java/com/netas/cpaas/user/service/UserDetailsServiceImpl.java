@@ -1,5 +1,6 @@
-package com.netas.cpaas.user;
+package com.netas.cpaas.user.service;
 
+import com.netas.cpaas.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

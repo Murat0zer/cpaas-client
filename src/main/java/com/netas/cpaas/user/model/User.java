@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -16,20 +18,25 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements UserDetails {
+public class User implements UserDetails, Serializable {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    private String name;
-
-    private String surname;
-
     @Column(unique = true)
     private String email;
 
+    private String firstName;
+
+    private String lastName;
+
     private String password;
+
+
+    private ServiceAddress serviceAddress;
+
+    private UserAddress userAddress;
 
     @Column(unique = true)
     private String username;
@@ -39,7 +46,7 @@ public class User implements UserDetails {
 
     private String token;
 
-    @Embedded
+    @OneToOne
     private NvsUser nvsUser;
 
     @Override
