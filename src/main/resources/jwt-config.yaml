@@ -1,5 +1,0 @@
-jwt:
-  token.header : Authorization
-  token.prefix : Bearer
-  token.expiration : 3600000
-  token.secret : JwtSecretKey

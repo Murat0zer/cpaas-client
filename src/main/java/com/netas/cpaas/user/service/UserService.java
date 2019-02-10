@@ -1,8 +1,9 @@
 package com.netas.cpaas.user.service;
 
 import com.google.common.collect.Sets;
-import com.hazelcast.core.HazelcastInstance;
 import com.netas.cpaas.CustomException;
+import com.netas.cpaas.HazelCastMapProvider;
+import com.netas.cpaas.NvsProjectProperties;
 import com.netas.cpaas.config.JwtTokenProvider;
 import com.netas.cpaas.user.UserRepository;
 import com.netas.cpaas.user.model.*;
@@ -10,8 +11,7 @@ import com.netas.cpaas.user.model.register.NvsRegisterDto;
 import com.netas.cpaas.user.model.register.RegistrationDto;
 import com.netas.cpaas.user.model.register.Variables;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Set;
+
+import static com.netas.cpaas.HazelCastMapProvider.getNvsTokenMapName;
 
 @Service
 public class UserService {
@@ -40,7 +42,9 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final HazelcastInstance hazelcastInstance;
+    private final HazelCastMapProvider hazelCastMapProvider;
+
+    private final NvsProjectProperties nvsProjectProperties;
 
     @Autowired
     public UserService(UserDetailsServiceImpl userDetailsService,
@@ -49,7 +53,8 @@ public class UserService {
                        PasswordEncoder passwordEncoder,
                        NvsUserService nvsUserService,
                        UserRepository userRepository,
-                       @Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
+                       HazelCastMapProvider hazelCastMapProvider,
+                       NvsProjectProperties nvsProjectProperties) {
 
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -57,7 +62,8 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.nvsUserService = nvsUserService;
         this.userRepository = userRepository;
-        this.hazelcastInstance = hazelcastInstance;
+        this.hazelCastMapProvider = hazelCastMapProvider;
+        this.nvsProjectProperties = nvsProjectProperties;
     }
 
     public void signin(String username, String password) {
@@ -69,6 +75,7 @@ public class UserService {
 
             Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
+            @SuppressWarnings("unchecked")
             Set<Role> roles = (Set<Role>) userDetailsService.loadUserByUsername(username).getAuthorities();
             String token = jwtTokenProvider.createToken(username, roles);
 
@@ -90,15 +97,15 @@ public class UserService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        } catch (AuthenticationException e ) {
+        } catch (AuthenticationException e) {
             String message = e.getMessage();
             HttpStatus httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
             throw new CustomException(message, httpStatus);
 
         } catch (HttpClientErrorException e) {
-           String message = e.getResponseBodyAsString();
-           HttpStatus httpStatus = e.getStatusCode();
-           throw new CustomException(message, httpStatus);
+            String message = e.getResponseBodyAsString();
+            HttpStatus httpStatus = e.getStatusCode();
+            throw new CustomException(message, httpStatus);
         }
     }
 
@@ -113,19 +120,27 @@ public class UserService {
                 .serviceAddress(registrationDto.getServiceAddress())
                 .nvsUser(NvsUser.builder().build())
                 .roles(Sets.newHashSet(Role.USER))
+                .username(registrationDto.getUserName())
                 .build();
 
         // TODO: 10.02.2019 grapql kullan ?
-        NvsRegisterDto nvsRegisterDto =  NvsRegisterDto.builder()
+
+        NvsTokenInfo appNvsTokenInfo;
+        appNvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getValue(getNvsTokenMapName(), nvsProjectProperties.getProjectId());
+        NvsRegisterDto nvsRegisterDto = NvsRegisterDto.builder()
                 .operationName("CreateUserMutation")
                 .query("mutation CreateUserMutation($input: CreateUserInput!) { " +
                         "createUser(input: $input) { ...AccountsPage_users __typename } } " +
                         "fragment AccountsPage_users on User { " +
                         "firstName lastName userName email id createdOn status roles __typename }")
                 .variables(Variables.builder().input(registrationDto).build())
-                .xToken(hazelcastInstance.getMap("app").get("access-token").toString())
+                .xToken(appNvsTokenInfo.getAccessToken())
                 .build();
-        user.setNvsUser(nvsUserService.createUser(nvsRegisterDto));
+        try {
+            user.setNvsUser(nvsUserService.createUser(nvsRegisterDto));
+        } catch (HttpClientErrorException e) {
+            throw new CustomException(e.getResponseBodyAsString(), e.getStatusCode());
+        }
         userRepository.save(user);
         return user;
     }

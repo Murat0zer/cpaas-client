@@ -1,29 +1,32 @@
 package com.netas.cpaas.user.service;
 
+import com.netas.cpaas.user.model.create.CreatedUserDto;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.NvsUser;
 import com.netas.cpaas.user.model.register.NvsRegisterDto;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NvsUserService {
 
+    private final RestTemplate restTemplate;
     @Value("${api.base.url}")
     private String baseUrl;
 
-    private final RestTemplate restTemplate;
-
-    NvsTokenInfo authUserForNvs(NvsLoginDto nvsLoginDto) {
+    public NvsTokenInfo authUserForNvs(NvsLoginDto nvsLoginDto) {
 
         String url = baseUrl + "/auth/v1/token";
 
@@ -37,11 +40,10 @@ public class NvsUserService {
         map.add("client_id", nvsLoginDto.getClientId());
         map.add("scope", nvsLoginDto.getScope());
 
-        HttpEntity<NvsLoginDto> request = new HttpEntity<>(nvsLoginDto, headers);
+        HttpEntity<MultiValueMap> request = new HttpEntity<>(map, headers);
         ResponseEntity<NvsTokenInfo> responseEntity;
 
         responseEntity = restTemplate.postForEntity(url, request, NvsTokenInfo.class);
-
 
         return responseEntity.getBody();
     }
@@ -52,11 +54,17 @@ public class NvsUserService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
+        headers.setBasicAuth("kandyadmin", "mK3!u2PI*@Buas#@4L19"); // FIXME: 10.02.2019 !hardcoded
+
+        headers.add("X-Token", nvsRegisterDto.getXToken());
+
         HttpEntity<NvsRegisterDto> request = new HttpEntity<>(nvsRegisterDto, headers);
 
-        ResponseEntity<NvsUser> responseEntity;
-        responseEntity = restTemplate.postForEntity(url, request, NvsUser.class);
-        return  responseEntity.getBody();
+        ResponseEntity<CreatedUserDto> responseEntity;
+        responseEntity = restTemplate.postForEntity(url, request, CreatedUserDto.class);
+
+        return  Objects.requireNonNull(responseEntity.getBody()).getDataOfCreatedUser().getNvsUser();
 
     }
 }

@@ -41,12 +41,12 @@ public class User implements UserDetails, Serializable {
     @Column(unique = true)
     private String username;
 
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     private String token;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private NvsUser nvsUser;
 
     @Override

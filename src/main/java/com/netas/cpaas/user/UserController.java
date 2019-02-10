@@ -25,7 +25,7 @@ public class UserController {
         try {
             userService.signin(loginDto.getUsername(), loginDto.getPassword());
         } catch (CustomException e) {
-           return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
+            return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
         }
         return ResponseEntity.ok(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
@@ -34,6 +34,10 @@ public class UserController {
     @ResponseBody
     public ResponseEntity<Object> register(@RequestBody @Valid RegistrationDto registrationDto) {
 
-        return ResponseEntity.ok(registrationDto);
+        try {
+            return ResponseEntity.ok(userService.signup(registrationDto));
+        } catch (CustomException e) {
+            return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
+        }
     }
 }

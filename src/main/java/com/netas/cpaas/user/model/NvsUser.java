@@ -3,10 +3,7 @@ package com.netas.cpaas.user.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,7 +33,8 @@ public class NvsUser implements Serializable {
     @JsonProperty("status")
     private String status;
 
+    @Transient
     @Builder.Default
     @JsonProperty("roles")
-    private Set<String> nvsRoles = new HashSet<>();
+    private Set<Role> nvsRoles = new HashSet<>();
 }
