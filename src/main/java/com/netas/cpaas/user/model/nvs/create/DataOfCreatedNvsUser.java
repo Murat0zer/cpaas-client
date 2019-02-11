@@ -1,4 +1,4 @@
-package com.netas.cpaas.user.model.create;
+package com.netas.cpaas.user.model.nvs.create;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
-public class DataOfCreatedUser implements Serializable {
+public class DataOfCreatedNvsUser implements Serializable {
 
     @JsonProperty("createUser")
     private NvsUser nvsUser;

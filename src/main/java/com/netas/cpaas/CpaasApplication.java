@@ -6,6 +6,7 @@ import com.netas.cpaas.user.RoleRepository;
 import com.netas.cpaas.user.UserRepository;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.Role;
+import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.service.NvsUserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

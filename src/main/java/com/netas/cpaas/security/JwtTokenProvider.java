@@ -1,12 +1,14 @@
-package com.netas.cpaas.config;
+package com.netas.cpaas.security;
 
 import com.netas.cpaas.CustomException;
+import com.netas.cpaas.config.JwtConfig;
 import com.netas.cpaas.user.model.Role;
-import com.netas.cpaas.user.service.UserDetailsServiceImpl;
+import com.netas.cpaas.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,19 +22,14 @@ import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Component
 public class JwtTokenProvider {
 
-
-    private final UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private  UserService userDetailsService;
 
     private final JwtConfig jwtConfig;
-
-    @Autowired
-    public JwtTokenProvider(UserDetailsServiceImpl userDetailsService, JwtConfig jwtConfig) {
-        this.userDetailsService = userDetailsService;
-        this.jwtConfig = jwtConfig;
-    }
 
     public String createToken(String username, Set<Role> roles) {
 

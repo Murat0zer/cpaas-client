@@ -34,10 +34,10 @@ public class RegistrationDto implements Serializable {
     private String email;
 
     @JsonProperty("firstName")
-    @NotBlank
+    @NotBlank(message = "{user.firstName.blank}" )
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "{user.firstName.blank}" )
     @JsonProperty("lastName")
     private String lastName;
 

@@ -29,3 +29,7 @@ spring:
 api:
   base:
     url: https://nvs-cpaas-oauth.kandy.io/cpaas
+
+project:
+  portal:
+    url: https://nvs-apimarket.kandy.io/api/graphql

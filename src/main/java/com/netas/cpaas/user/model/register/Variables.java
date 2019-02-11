@@ -17,9 +17,9 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Variables implements Serializable {
+public class Variables<T> implements Serializable {
 
     @JsonProperty("input")
-    public RegistrationDto input;
+    public T input;
 
 }

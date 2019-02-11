@@ -1,6 +1,8 @@
-package com.netas.cpaas.config;
+package com.netas.cpaas.security;
 
 import com.netas.cpaas.CustomException;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -12,17 +14,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
 @Component
 public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtConfig jwtConfig;
-
-    private final JwtTokenProvider jwtTokenProvider;
-
-    public JwtTokenAuthenticationFilter(JwtConfig jwtConfig, JwtTokenProvider jwtTokenProvider) {
-        this.jwtConfig = jwtConfig;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -35,12 +32,11 @@ public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         } catch (CustomException ex) {
-            //this is very important, since it guarantees the user is not authenticated at all
+
             SecurityContextHolder.clearContext();
             response.sendError(ex.getHttpStatus().value(), ex.getMessage());
             return;
         }
-
         chain.doFilter(request, response);
     }
 }

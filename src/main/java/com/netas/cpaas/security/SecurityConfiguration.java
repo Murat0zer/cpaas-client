@@ -1,7 +1,9 @@
-package com.netas.cpaas.config;
+package com.netas.cpaas.security;
 
+import com.netas.cpaas.config.JwtTokenFilterConfigurer;
 import com.netas.cpaas.user.model.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,17 +17,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private final JwtTokenProvider jwtTokenProvider;
-
-    private final JwtConfig jwtConfig;
-
-    @Autowired
-    public SecurityConfiguration(JwtTokenProvider jwtTokenProvider, JwtConfig jwtConfig) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.jwtConfig = jwtConfig;
-    }
+    private final JwtTokenFilterConfigurer jwtTokenFilterConfigurer;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -46,7 +41,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint(new Cpass401AuthenticationEntryPoint())
                 .and()
-                // And filter other requests to check the presence of JWT in header
                 .logout()
                 .invalidateHttpSession(true)
                 .logoutSuccessUrl("/")
@@ -55,10 +49,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable();
 
-        http.headers().frameOptions().disable();
+        http.headers().frameOptions().disable(); // h2
 
 
-        http.apply(new JwtTokenFilterConfigurer(jwtTokenProvider, jwtConfig));
+        http.apply(jwtTokenFilterConfigurer);
     }
 
     @Override
