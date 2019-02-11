@@ -39,4 +39,8 @@ public class ChatService {
         ResponseEntity<Object> responseEntity = restTemplate.postForEntity(url, request, Object.class);
         return (ChatMessage) responseEntity.getBody();
     }
+
+    public void subscribeChatServiceNotifications() {
+
+    }
 }

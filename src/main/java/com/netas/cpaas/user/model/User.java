@@ -33,9 +33,10 @@ public class User implements UserDetails, Serializable {
 
     private String password;
 
-
+    @Embedded
     private ServiceAddress serviceAddress;
 
+    @Embedded
     private UserAddress userAddress;
 
     @Column(unique = true)

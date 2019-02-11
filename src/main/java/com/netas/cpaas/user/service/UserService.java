@@ -3,6 +3,7 @@ package com.netas.cpaas.user.service;
 import com.google.common.collect.Sets;
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.HazelCastMapProvider;
+import com.netas.cpaas.chat.ChatService;
 import com.netas.cpaas.security.JwtTokenProvider;
 import com.netas.cpaas.user.UserRepository;
 import com.netas.cpaas.user.model.*;
@@ -38,7 +39,9 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    private HazelCastMapProvider hazelCastMapProvider;
+    private final HazelCastMapProvider hazelCastMapProvider;
+
+    private final ChatService chatService;
 
 
     @Override
@@ -91,6 +94,8 @@ public class UserService implements UserDetailsService {
             HttpStatus httpStatus = e.getStatusCode();
             throw new CustomException(message, httpStatus);
         }
+
+        chatService.subscribeChatServiceNotifications();
     }
 
     public User signup(RegistrationDto registrationDto) {
