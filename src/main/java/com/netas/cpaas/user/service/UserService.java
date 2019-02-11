@@ -2,12 +2,10 @@ package com.netas.cpaas.user.service;
 
 import com.google.common.collect.Sets;
 import com.netas.cpaas.CustomException;
+import com.netas.cpaas.HazelCastMapProvider;
 import com.netas.cpaas.security.JwtTokenProvider;
 import com.netas.cpaas.user.UserRepository;
-import com.netas.cpaas.user.model.NvsLoginDto;
-import com.netas.cpaas.user.model.NvsUser;
-import com.netas.cpaas.user.model.Role;
-import com.netas.cpaas.user.model.User;
+import com.netas.cpaas.user.model.*;
 import com.netas.cpaas.user.model.register.RegistrationDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,6 +37,8 @@ public class UserService implements UserDetailsService {
     private final NvsUserService nvsUserService;
 
     private final UserRepository userRepository;
+
+    private HazelCastMapProvider hazelCastMapProvider;
 
 
     @Override
@@ -74,9 +74,12 @@ public class UserService implements UserDetailsService {
                     .scope("openid")
                     .email(user.getEmail()).build();
 
-            user.getNvsUser().setNvsTokenInfo(nvsUserService.authUserForNvs(nvsLoginDto));
+            NvsTokenInfo nvsTokenInfo = nvsUserService.authUserForNvs(nvsLoginDto);
+            user.getNvsUser().setNvsTokenInfo(nvsTokenInfo);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            hazelCastMapProvider.putToMap(HazelCastMapProvider.getNvsTokenMapName(), username, nvsTokenInfo);
+
 
         } catch (AuthenticationException e) {
             String message = e.getMessage();
@@ -112,7 +115,7 @@ public class UserService implements UserDetailsService {
             userRepository.save(user);
         } catch (Exception e) {
             nvsUserService.deleteUser(user.getNvsUser().getNvsId());
-            throw new CustomException("Failed", HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new CustomException("Failed. Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return user;
     }

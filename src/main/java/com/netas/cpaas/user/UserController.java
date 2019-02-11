@@ -1,6 +1,7 @@
 package com.netas.cpaas.user;
 
 import com.netas.cpaas.CustomException;
+import com.netas.cpaas.chat.model.ChatMessageNotification;
 import com.netas.cpaas.user.model.LoginDto;
 import com.netas.cpaas.user.model.register.RegistrationDto;
 import com.netas.cpaas.user.service.UserService;
@@ -40,4 +41,5 @@ public class UserController {
             return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
         }
     }
+
 }
