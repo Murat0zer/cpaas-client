@@ -37,4 +37,6 @@ public class NvsUser implements Serializable {
     @Builder.Default
     @JsonProperty("roles")
     private Set<Role> nvsRoles = new HashSet<>();
+
+    private NvsUserInfo nvsUserInfo;
 }

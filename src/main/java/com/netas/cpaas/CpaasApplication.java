@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+
 @Slf4j
 @AllArgsConstructor
 @SpringBootApplication
@@ -71,9 +74,12 @@ public class CpaasApplication {
                 roleRepository.save(Role.USER);
             }
 
+            String serverIpAdress = InetAddress.getLocalHost().getHostAddress();
             ChannelData channelData = ChannelData.builder()
-                    .xWebhookURL("http://localhost:8080/api/users/chatMessageNotification")
+                    .xWebhookURL("http://" + serverIpAdress + ":8080/api/users/chatMessageNotification")
+                    .xAuthorization("Bearer <someToken>")
                     .build();
+            channelData.xWebhookURL = ("https://myapp.com/abc123");
             NotificationChannel notificationChannel = NotificationChannel.builder()
                     .channelType("Webhooks")
                     .clientCorrelator(nvsProjectProperties.getProjectId())
@@ -83,7 +89,6 @@ public class CpaasApplication {
                     .notificationChannel(notificationChannel)
                     .build();
             notificationService.createWebHook(webHook);
-
 
         };
     }

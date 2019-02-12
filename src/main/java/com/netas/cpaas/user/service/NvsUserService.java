@@ -1,5 +1,6 @@
 package com.netas.cpaas.user.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.HazelCastMapProvider;
@@ -7,11 +8,13 @@ import com.netas.cpaas.NvsProjectProperties;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.NvsUser;
+import com.netas.cpaas.user.model.NvsUserInfo;
 import com.netas.cpaas.user.model.nvs.NvsGraphqlDto;
 import com.netas.cpaas.user.model.nvs.create.NvsCreatedUser;
 import com.netas.cpaas.user.model.register.RegistrationDto;
 import com.netas.cpaas.user.model.register.Variables;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.*;
 
 import static com.netas.cpaas.HazelCastMapProvider.getNvsTokenMapName;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NvsUserService {
@@ -68,7 +72,7 @@ public class NvsUserService {
 
         HttpHeaders headers = new HttpHeaders();
 
-        this.authenticateRequest(headers);
+        this.authenticateRequest(headers, nvsProjectProperties.getProjectId());
 
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -94,7 +98,7 @@ public class NvsUserService {
 
         HttpHeaders headers = new HttpHeaders();
 
-        this.authenticateRequest(headers);
+        this.authenticateRequest(headers, nvsProjectProperties.getProjectId());
 
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -117,11 +121,11 @@ public class NvsUserService {
 
     }
 
-    private void authenticateRequest(HttpHeaders headers) {
+    private void authenticateRequest(HttpHeaders headers, String username) {
 
-        NvsTokenInfo appNvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getValue(getNvsTokenMapName(), nvsProjectProperties.getProjectId());
+        NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getValue(getNvsTokenMapName(), username);
 
-        headers.add("X-Token", appNvsTokenInfo.getAccessToken());
+        headers.add("X-Token", nvsTokenInfo.getAccessToken());
         headers.setBasicAuth("kandyadmin", "mK3!u2PI*@Buas#@4L19"); // FIXME: 10.02.2019 !hardcoded
     }
 }
