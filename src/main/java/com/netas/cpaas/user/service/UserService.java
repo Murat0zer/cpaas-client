@@ -84,7 +84,9 @@ public class UserService implements UserDetailsService {
             user.getNvsUser().setNvsTokenInfo(nvsTokenInfo);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            hazelCastMapProvider.putToMap(HazelCastMapProvider.getNvsTokenMapName(), username, nvsTokenInfo);
+
+            String mapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
+            hazelCastMapProvider.putToMap(mapName, username, nvsTokenInfo);
 
 
         } catch (AuthenticationException e) {

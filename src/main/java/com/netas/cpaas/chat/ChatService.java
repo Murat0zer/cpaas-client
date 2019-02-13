@@ -5,12 +5,12 @@ import com.netas.cpaas.chat.model.ChatMessage;
 import com.netas.cpaas.chat.model.notification.CallbackReference;
 import com.netas.cpaas.chat.model.notification.ChatNotificationSubscription;
 import com.netas.cpaas.chat.model.notification.ChatSubscriptionJson;
-import com.netas.cpaas.notification.SubscribeNotificationWebSocketJson;
 import com.netas.cpaas.nvs.NvsApiRequestUrl;
 import com.netas.cpaas.nvs.NvsProjectProperties;
 import com.netas.cpaas.user.NvsUserUtils;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.User;
+import com.netas.cpaas.user.service.NvsUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +30,8 @@ public class ChatService {
 
     private final RestTemplate restTemplate;
 
+    private final NvsUserService nvsUserService;
+
 
     public ChatMessage sendMessage(String userId, String otherUserId, ChatMessage chatMessage) {
 
@@ -37,7 +39,8 @@ public class ChatService {
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
-        Object token = hazelCastMapProvider.getValue(HazelCastMapProvider.getApplicationTokenMapName(), nvsProjectProperties.getProjectId());
+        String mapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
+        Object token = hazelCastMapProvider.getValue(mapName, nvsProjectProperties.getProjectId());
         httpHeaders.setBearerAuth(token.toString());
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -49,20 +52,20 @@ public class ChatService {
 
     public void subscribeChatServiceNotifications() {
 
-        String notifiyURl = "";
-        CallbackReference callbackReference = CallbackReference.builder().notifyURL(notifiyURl).build();
+        String mapName = HazelCastMapProvider.MapNames.NOTIFICATION_CHANNELS;
+        String nvsUserId = nvsUserService.getNvsUserId();
+        String notifyURl = (String) hazelCastMapProvider.getMap(mapName).get(nvsUserId);
+
+        CallbackReference callbackReference = CallbackReference.builder().notifyURL(notifyURl).build();
         ChatNotificationSubscription chatNotificationSubscription = ChatNotificationSubscription.builder()
                 .callbackReference(callbackReference)
-                .clientCorrelator("prefUid")
+                .clientCorrelator(nvsUserId)
                 .build();
         ChatSubscriptionJson chatSubscriptionJson = ChatSubscriptionJson.builder()
                 .chatNotificationSubscription(chatNotificationSubscription)
                 .build();
 
-        NvsTokenInfo nvsTokenInfo;
-        String userName = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName()).get(userName);
-        String nvsUserId = NvsUserUtils.getNvsUserInfoFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
+        NvsTokenInfo nvsTokenInfo = nvsUserService.getNvsTokenInfo(nvsUserId);
 
         NvsApiRequestUrl.setApiName("chat");
         NvsApiRequestUrl.setApiVersion("v1");
@@ -71,7 +74,7 @@ public class ChatService {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.setBearerAuth(nvsTokenInfo.getAccessToken());
-        HttpEntity<ChatSubscriptionJson> httpEntity =  new HttpEntity<>(chatSubscriptionJson, httpHeaders);
+        HttpEntity<ChatSubscriptionJson> httpEntity = new HttpEntity<>(chatSubscriptionJson, httpHeaders);
 
         String url = NvsApiRequestUrl.getUrlForApiRequest() + "/subscriptions";
         ResponseEntity<ChatSubscriptionJson> responseEntity;

@@ -56,16 +56,13 @@ public class NotificationService {
                 .notificationChannel(notificationChannel)
                 .build();
 
-        String userName = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName()).get(userName);
-        String userId = NvsUserUtils.getNvsUserInfoFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
-
-        NvsApiRequestUrl.setApiName("notificationchannel");
-        NvsApiRequestUrl.setApiVersion("v1");
-        NvsApiRequestUrl.setUserId(userId);
     }
 
     public void subscribeNotifications() {
+        NvsApiRequestUrl.setApiName("notificationchannel");
+        NvsApiRequestUrl.setApiVersion("v1");
+        NvsApiRequestUrl.setUserId(nvsUserService.getNvsUserId());
+
         this.createWebSocket();
     }
     private void createWebSocket() {
@@ -90,7 +87,8 @@ public class NotificationService {
 
         this.establishWebSocketConnection(Objects.requireNonNull(requestBody).notificationChannel.callbackURL);
 
-        hazelCastMapProvider.putToMap("notificationChannels", NvsApiRequestUrl.getUserId(), requestBody.notificationChannel.callbackURL );
+        String mapName = HazelCastMapProvider.MapNames.NOTIFICATION_CHANNELS;
+        hazelCastMapProvider.putToMap(mapName, NvsApiRequestUrl.getUserId(), requestBody.notificationChannel.callbackURL );
     }
 
     private void establishWebSocketConnection(String callBackUrl) {

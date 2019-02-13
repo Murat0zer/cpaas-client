@@ -4,9 +4,11 @@ import com.google.common.collect.Lists;
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.HazelCastMapProvider;
 import com.netas.cpaas.nvs.NvsProjectProperties;
+import com.netas.cpaas.user.NvsUserUtils;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.NvsUser;
+import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.model.nvs.NvsGraphqlDto;
 import com.netas.cpaas.user.model.nvs.create.NvsCreatedUser;
 import com.netas.cpaas.user.model.register.RegistrationDto;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,8 +25,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-
-import static com.netas.cpaas.HazelCastMapProvider.getNvsTokenMapName;
 
 @Slf4j
 @Service
@@ -121,14 +122,26 @@ public class NvsUserService {
 
     private void authenticateRequest(HttpHeaders headers, String username) {
 
-        NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getValue(getNvsTokenMapName(), username);
+        String nvsTokensMapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
+        NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getValue(nvsTokensMapName, username);
 
         headers.add("X-Token", nvsTokenInfo.getAccessToken());
         headers.setBasicAuth("kandyadmin", "mK3!u2PI*@Buas#@4L19"); // FIXME: 10.02.2019 !hardcoded
     }
 
     public NvsTokenInfo getNvsTokenInfo(String userId) {
+        String nvsTokensMapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
+        return (NvsTokenInfo) hazelCastMapProvider.getMap(nvsTokensMapName).get(userId);
+    }
 
-        return (NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName()).get(userId);
+    public String getNvsUserId() {
+
+        String nvsTokensMapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
+
+        String userName = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+        NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getMap(nvsTokensMapName).get(userName);
+        String nvsUserId = NvsUserUtils.getNvsUserInfoFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
+
+        return nvsUserId;
     }
 }

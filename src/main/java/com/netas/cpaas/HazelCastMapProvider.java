@@ -9,10 +9,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class HazelCastMapProvider {
 
-    private static String nvsTokenMapName = "nvsTokenMap";
-
-    private static String applicationTokenMapName = "appTokenMap";
-
     private final HazelcastInstance hazelcastInstance;
 
     public IMap<String, Object> getMap(String mapName) {
@@ -27,11 +23,12 @@ public class HazelCastMapProvider {
         return hazelcastInstance.getMap(mapName).get(key);
     }
 
-    public static String getNvsTokenMapName() {
-        return nvsTokenMapName;
-    }
 
-    public static String getApplicationTokenMapName() {
-        return applicationTokenMapName;
+    public static class MapNames {
+        public static final String NVS_TOKEN = "nvsTokenMap";
+        public static final String APPLICATION_TOKEN = "appTokenMap";
+        public static final String NOTIFICATION_CHANNELS = "notificationChannels";
+        private MapNames() {
+        }
     }
 }
