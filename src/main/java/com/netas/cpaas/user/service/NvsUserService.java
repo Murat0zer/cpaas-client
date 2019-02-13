@@ -1,14 +1,12 @@
 package com.netas.cpaas.user.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netas.cpaas.CustomException;
 import com.netas.cpaas.HazelCastMapProvider;
-import com.netas.cpaas.NvsProjectProperties;
+import com.netas.cpaas.nvs.NvsProjectProperties;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.NvsUser;
-import com.netas.cpaas.user.model.NvsUserInfo;
 import com.netas.cpaas.user.model.nvs.NvsGraphqlDto;
 import com.netas.cpaas.user.model.nvs.create.NvsCreatedUser;
 import com.netas.cpaas.user.model.register.RegistrationDto;
@@ -127,5 +125,10 @@ public class NvsUserService {
 
         headers.add("X-Token", nvsTokenInfo.getAccessToken());
         headers.setBasicAuth("kandyadmin", "mK3!u2PI*@Buas#@4L19"); // FIXME: 10.02.2019 !hardcoded
+    }
+
+    public NvsTokenInfo getNvsTokenInfo(String userId) {
+
+        return (NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName()).get(userId);
     }
 }

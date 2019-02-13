@@ -1,4 +1,4 @@
-package com.netas.cpaas;
+package com.netas.cpaas.nvs;
 
 
 import lombok.Getter;

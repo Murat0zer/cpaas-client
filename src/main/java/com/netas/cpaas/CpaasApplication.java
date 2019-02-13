@@ -1,12 +1,11 @@
 package com.netas.cpaas;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.netas.cpaas.notification.ChannelData;
 import com.netas.cpaas.notification.NotificationChannel;
 import com.netas.cpaas.notification.NotificationService;
-import com.netas.cpaas.notification.WebHook;
+import com.netas.cpaas.notification.SubscribeNotificationWebSocketJson;
+import com.netas.cpaas.nvs.NvsProjectProperties;
 import com.netas.cpaas.user.RoleRepository;
-import com.netas.cpaas.user.UserRepository;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
 import com.netas.cpaas.user.model.Role;
@@ -23,9 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-
 @Slf4j
 @AllArgsConstructor
 @SpringBootApplication
@@ -33,7 +29,9 @@ import java.net.NetworkInterface;
 @EntityScan(basePackages = {"com.netas.cpaas"})
 public class CpaasApplication {
 
-    private final HazelcastInstance hazelcastInstance;
+    private final HazelCastMapProvider hazelcastInstance;
+
+    private final HazelCastMapProvider hazelCastMapProvider;
 
     private final NvsProjectProperties nvsProjectProperties;
 
@@ -74,21 +72,6 @@ public class CpaasApplication {
                 roleRepository.save(Role.USER);
             }
 
-            String serverIpAdress = InetAddress.getLocalHost().getHostAddress();
-            ChannelData channelData = ChannelData.builder()
-                    .xWebhookURL("http://" + serverIpAdress + ":8080/api/users/chatMessageNotification")
-                    .xAuthorization("Bearer <someToken>")
-                    .build();
-            channelData.xWebhookURL = ("https://myapp.com/abc123");
-            NotificationChannel notificationChannel = NotificationChannel.builder()
-                    .channelType("Webhooks")
-                    .clientCorrelator(nvsProjectProperties.getProjectId())
-                    .channelData(channelData)
-                    .build();
-            WebHook webHook = WebHook.builder()
-                    .notificationChannel(notificationChannel)
-                    .build();
-            notificationService.createWebHook(webHook);
 
         };
     }

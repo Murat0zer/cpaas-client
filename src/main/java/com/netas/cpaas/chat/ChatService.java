@@ -1,21 +1,28 @@
 package com.netas.cpaas.chat;
 
 import com.netas.cpaas.HazelCastMapProvider;
-import com.netas.cpaas.NvsProjectProperties;
 import com.netas.cpaas.chat.model.ChatMessage;
+import com.netas.cpaas.chat.model.notification.CallbackReference;
+import com.netas.cpaas.chat.model.notification.ChatNotificationSubscription;
+import com.netas.cpaas.chat.model.notification.ChatSubscriptionJson;
+import com.netas.cpaas.notification.SubscribeNotificationWebSocketJson;
+import com.netas.cpaas.nvs.NvsApiRequestUrl;
+import com.netas.cpaas.nvs.NvsProjectProperties;
+import com.netas.cpaas.user.NvsUserUtils;
+import com.netas.cpaas.user.model.NvsTokenInfo;
+import com.netas.cpaas.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @RequiredArgsConstructor
 @Service
 public class ChatService {
-
-    String baseUrl = "https://nvs-cpaas-oauth.kandy.io/cpaas/chat/v1";
 
     private final HazelCastMapProvider hazelCastMapProvider;
 
@@ -26,7 +33,7 @@ public class ChatService {
 
     public ChatMessage sendMessage(String userId, String otherUserId, ChatMessage chatMessage) {
 
-        String url = baseUrl + "/" + userId + "/oneToOne/" + otherUserId + "/adhoc/messages";
+        String url = NvsApiRequestUrl.getUrlForApiRequest() + "/" + userId + "/oneToOne/" + otherUserId + "/adhoc/messages";
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -41,6 +48,35 @@ public class ChatService {
     }
 
     public void subscribeChatServiceNotifications() {
+
+        String notifiyURl = "";
+        CallbackReference callbackReference = CallbackReference.builder().notifyURL(notifiyURl).build();
+        ChatNotificationSubscription chatNotificationSubscription = ChatNotificationSubscription.builder()
+                .callbackReference(callbackReference)
+                .clientCorrelator("prefUid")
+                .build();
+        ChatSubscriptionJson chatSubscriptionJson = ChatSubscriptionJson.builder()
+                .chatNotificationSubscription(chatNotificationSubscription)
+                .build();
+
+        NvsTokenInfo nvsTokenInfo;
+        String userName = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+        nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName()).get(userName);
+        String nvsUserId = NvsUserUtils.getNvsUserInfoFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
+
+        NvsApiRequestUrl.setApiName("chat");
+        NvsApiRequestUrl.setApiVersion("v1");
+        NvsApiRequestUrl.setUserId(nvsUserId);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setBearerAuth(nvsTokenInfo.getAccessToken());
+        HttpEntity<ChatSubscriptionJson> httpEntity =  new HttpEntity<>(chatSubscriptionJson, httpHeaders);
+
+        String url = NvsApiRequestUrl.getUrlForApiRequest() + "/subscriptions";
+        ResponseEntity<ChatSubscriptionJson> responseEntity;
+
+        responseEntity = restTemplate.postForEntity(url, httpEntity, ChatSubscriptionJson.class);
 
     }
 }

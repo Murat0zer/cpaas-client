@@ -2,7 +2,6 @@ package com.netas.cpaas.security;
 
 import com.netas.cpaas.config.JwtTokenFilterConfigurer;
 import com.netas.cpaas.user.model.Role;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
