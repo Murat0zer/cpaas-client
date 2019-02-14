@@ -7,16 +7,13 @@ import com.netas.cpaas.chat.model.notification.ChatNotificationSubscription;
 import com.netas.cpaas.chat.model.notification.ChatSubscriptionJson;
 import com.netas.cpaas.nvs.NvsApiRequestUrl;
 import com.netas.cpaas.nvs.NvsProjectProperties;
-import com.netas.cpaas.user.NvsUserUtils;
 import com.netas.cpaas.user.model.NvsTokenInfo;
-import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.service.NvsUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -65,7 +62,7 @@ public class ChatService {
                 .chatNotificationSubscription(chatNotificationSubscription)
                 .build();
 
-        NvsTokenInfo nvsTokenInfo = nvsUserService.getNvsTokenInfo(nvsUserId);
+        NvsTokenInfo nvsTokenInfo = nvsUserService.getNvsTokenInfo();
 
         NvsApiRequestUrl.setApiName("chat");
         NvsApiRequestUrl.setApiVersion("v1");

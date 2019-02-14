@@ -5,7 +5,9 @@ import com.netas.cpaas.CustomException;
 import com.netas.cpaas.HazelCastMapProvider;
 import com.netas.cpaas.chat.ChatService;
 import com.netas.cpaas.notification.NotificationService;
+import com.netas.cpaas.nvs.NvsProjectProperties;
 import com.netas.cpaas.security.JwtTokenProvider;
+import com.netas.cpaas.user.NvsUserUtils;
 import com.netas.cpaas.user.UserRepository;
 import com.netas.cpaas.user.model.*;
 import com.netas.cpaas.user.model.register.RegistrationDto;
@@ -46,6 +48,8 @@ public class UserService implements UserDetailsService {
 
     private final NotificationService notificationService;
 
+    private final NvsProjectProperties nvsProjectProperties;
+
 
     @Override
     public UserDetails loadUserByUsername(String username) {
@@ -74,20 +78,22 @@ public class UserService implements UserDetailsService {
             user.setToken(token);
 
             NvsLoginDto nvsLoginDto = NvsLoginDto.builder()
-                    .clientId(String.valueOf(user.getId()))
+                    .clientId(nvsProjectProperties.getClientId())
                     .grantType("password")
-                    .password(user.getPassword())
+                    .password(password)
                     .scope("openid")
-                    .email(user.getEmail()).build();
+                    .email(user.getEmail())
+                    .build();
 
             NvsTokenInfo nvsTokenInfo = nvsUserService.authUserForNvs(nvsLoginDto);
             user.getNvsUser().setNvsTokenInfo(nvsTokenInfo);
+
+            user.setNvsUser(NvsUserUtils.getNvsUserFromIdToken(nvsTokenInfo.getIdToken()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             String mapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
             hazelCastMapProvider.putToMap(mapName, username, nvsTokenInfo);
-
 
         } catch (AuthenticationException e) {
             String message = e.getMessage();
@@ -118,14 +124,14 @@ public class UserService implements UserDetailsService {
                 .username(registrationDto.getUserName())
                 .build();
         try {
-            user.setNvsUser(nvsUserService.createUser(registrationDto));
+            user.getNvsUser().setNvsUserInfo(nvsUserService.createUser(registrationDto));
         } catch (HttpClientErrorException e) {
             throw new CustomException(e.getResponseBodyAsString(), e.getStatusCode());
         }
         try {
             userRepository.save(user);
         } catch (Exception e) {
-            nvsUserService.deleteUser(user.getNvsUser().getNvsId());
+            nvsUserService.deleteUser(user.getNvsUser().getNvsUserInfo().getNvsId());
             throw new CustomException("Failed. Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return user;

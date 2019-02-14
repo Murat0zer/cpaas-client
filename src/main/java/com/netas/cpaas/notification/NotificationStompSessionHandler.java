@@ -5,15 +5,17 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
 
+@Component
 @Slf4j
 public class NotificationStompSessionHandler implements StompSessionHandler {
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-      log.info("Web socket created " + session.getSessionId());
+      log.info("Connected... " + session.getSessionId());
       log.info("Headers...\n" + connectedHeaders.toSingleValueMap().toString() );
     }
 
@@ -24,16 +26,20 @@ public class NotificationStompSessionHandler implements StompSessionHandler {
 
     @Override
     public void handleTransportError(StompSession session, Throwable exception) {
+
         log.error("Error");
     }
 
     @Override
     public Type getPayloadType(StompHeaders headers) {
+
         return headers.getContentType().getClass();
     }
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
-
+        log.info("hi");
     }
+
+
 }

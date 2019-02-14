@@ -7,7 +7,7 @@ import com.netas.cpaas.nvs.NvsProjectProperties;
 import com.netas.cpaas.user.NvsUserUtils;
 import com.netas.cpaas.user.model.NvsLoginDto;
 import com.netas.cpaas.user.model.NvsTokenInfo;
-import com.netas.cpaas.user.model.NvsUser;
+import com.netas.cpaas.user.model.NvsUserInfo;
 import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.model.nvs.NvsGraphqlDto;
 import com.netas.cpaas.user.model.nvs.create.NvsCreatedUser;
@@ -67,7 +67,7 @@ public class NvsUserService {
         return responseEntity.getBody();
     }
 
-    NvsUser createUser(RegistrationDto registrationDto) {
+    NvsUserInfo createUser(RegistrationDto registrationDto) {
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -90,7 +90,7 @@ public class NvsUserService {
         ResponseEntity<NvsCreatedUser> responseEntity;
         responseEntity = restTemplate.postForEntity(projectPortalUrl, request, NvsCreatedUser.class);
 
-        return Objects.requireNonNull(responseEntity.getBody()).getDataOfCreatedNvsUser().getNvsUser();
+        return Objects.requireNonNull(responseEntity.getBody()).getDataOfCreatedNvsUser().getNvsUserInfo();
     }
 
     void deleteUser(String nvsId) {
@@ -129,9 +129,13 @@ public class NvsUserService {
         headers.setBasicAuth("kandyadmin", "mK3!u2PI*@Buas#@4L19"); // FIXME: 10.02.2019 !hardcoded
     }
 
-    public NvsTokenInfo getNvsTokenInfo(String userId) {
+    /**
+     * @return Nvs tokens of authenticated user.
+     */
+    public NvsTokenInfo getNvsTokenInfo() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String nvsTokensMapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
-        return (NvsTokenInfo) hazelCastMapProvider.getMap(nvsTokensMapName).get(userId);
+        return (NvsTokenInfo) hazelCastMapProvider.getMap(nvsTokensMapName).get(user.getUsername());
     }
 
     public String getNvsUserId() {
@@ -140,8 +144,6 @@ public class NvsUserService {
 
         String userName = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider.getMap(nvsTokensMapName).get(userName);
-        String nvsUserId = NvsUserUtils.getNvsUserInfoFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
-
-        return nvsUserId;
+        return NvsUserUtils.getNvsUserFromIdToken(nvsTokenInfo.getIdToken()).getPreferredUsername();
     }
 }

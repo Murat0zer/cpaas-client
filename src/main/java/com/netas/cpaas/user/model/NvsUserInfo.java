@@ -1,41 +1,38 @@
 package com.netas.cpaas.user.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.*;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Data
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class NvsUserInfo implements Serializable {
 
-    @JsonProperty("sub")
-    private String sub;
+    @JsonProperty("__typename")
+    private String typename;
 
-    @JsonProperty("preferred_username")
-    private String preferredUsername;
+    @JsonProperty("id")
+    private String nvsId;
 
-    @JsonProperty("email")
-    private String email;
+    @JsonProperty("createdOn")
+    private String createdOn;
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("status")
+    private String status;
 
-    @JsonProperty("given_name")
-    private String givenName;
+    @Transient
+    @Builder.Default
+    @JsonProperty("roles")
+    private Set<Role> nvsRoles = new HashSet<>();
 
-    @JsonProperty("family_name")
-    private String familyName;
-
-    @JsonProperty("services-identity")
-    private String servicesIdentity;
-
-    @JsonProperty("sms-did-list")
-    private Set<String> smsDidList;
-
-    @JsonProperty("call-did-list")
-    private Set<String> callDidList;
 }
-
