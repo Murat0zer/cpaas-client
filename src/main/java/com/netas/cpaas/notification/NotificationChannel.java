@@ -32,8 +32,8 @@ public class NotificationChannel implements Serializable {
     @JsonProperty("clientCorrelator")
     public String clientCorrelator;
 
-    @JsonProperty("x-connCheckRole")
-    public String xConnCheckRole;
+//    @JsonProperty("x-connCheckRole")
+//    public String xConnCheckRole;
 
     @JsonProperty("resourceURL")
     public String resourceURL;

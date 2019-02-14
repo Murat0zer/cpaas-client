@@ -2,35 +2,31 @@ package com.netas.cpaas.notification;
 
 import com.netas.cpaas.HazelCastMapProvider;
 import com.netas.cpaas.nvs.NvsApiRequestUrl;
-import com.netas.cpaas.nvs.NvsProjectProperties;
-import com.netas.cpaas.user.NvsUserUtils;
-import com.netas.cpaas.user.model.NvsTokenInfo;
-import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.service.NvsUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.StompSessionHandler;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
-import org.springframework.web.socket.sockjs.client.WebSocketClientSockJsSession;
 
 import javax.annotation.PostConstruct;
 import java.util.Objects;
 
+@EnableWebSocket
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -50,7 +46,6 @@ public class NotificationService {
         NotificationChannel notificationChannel = NotificationChannel.builder()
                 .clientCorrelator("")
                 .channelType("WebSockets")
-                .xConnCheckRole("server")
                 .channelLifetime(3600)
                 .build();
         requestBody = SubscribeNotificationWebSocketJson.builder()
@@ -65,6 +60,7 @@ public class NotificationService {
 
         this.createWebSocket();
     }
+
     private void createWebSocket() {
 
         log.info("creating websocket for notifications");
@@ -78,7 +74,7 @@ public class NotificationService {
         try {
             responseEntity = restTemplate.postForEntity(url, httpEntity, SubscribeNotificationWebSocketJson.class);
         } catch (HttpClientErrorException e) {
-            log.error(e.getResponseBodyAsString(),  e.getStatusCode().toString());
+            log.error(e.getResponseBodyAsString(), e.getStatusCode().toString());
             log.error("creating websocket for notifications has failed.");
             throw e;
         }
@@ -89,7 +85,7 @@ public class NotificationService {
         this.establishWebSocketConnection(Objects.requireNonNull(requestBody).notificationChannel.callbackURL);
 
         String mapName = HazelCastMapProvider.MapNames.NOTIFICATION_CHANNELS;
-        hazelCastMapProvider.putToMap(mapName, NvsApiRequestUrl.getUserId(), requestBody.notificationChannel.callbackURL );
+        hazelCastMapProvider.putToMap(mapName, NvsApiRequestUrl.getUserId(), requestBody.notificationChannel.callbackURL);
     }
 
     private void establishWebSocketConnection(String callBackUrl) {
@@ -97,21 +93,27 @@ public class NotificationService {
         log.info("creating actual websocket...");
 
         String url = NvsApiRequestUrl.getUrlForWebSocket() + "/channels" + "/" + callBackUrl + "/websocket?access_token={keyword}";
-        JettyWebSocketClient client = new JettyWebSocketClient();
+        WebSocketClient webSocketClient = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
+        stompClient.setMessageConverter(new StringMessageConverter());
 
-
-        WebSocketClientSockJsSession webSocketClientSockJsSession = new WebSocketClientSockJsSession(client);
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-        StompSessionHandler sessionHandler = new NotificationStompSessionHandler();
         String uriVariableValue = nvsUserService.getNvsTokenInfo().getAccessToken();
 
+        WebSocketClient client = new StandardWebSocketClient();
         try {
-            stompClient.connect(url, sessionHandler, uriVariableValue);
+            WebSocketSession session = client.doHandshake(new SocketHandler(), url, uriVariableValue).get();
+            session.sendMessage(new TextMessage("Hello World test."));
         } catch (Exception e) {
-            log.error("failed to create websocket !");
-            log.error(e.getMessage());
+            log.info(e.getMessage());
         }
-        log.info("Websocket has created. =" + stompClient.toString());
+
+//        try {
+//            stompClient.connect(url, new NotificationStompSessionHandler(), uriVariableValue);
+//        } catch (Exception e) {
+//            log.error("failed to create websocket !");
+//            log.error(e.getMessage());
+//        }
+//        log.info("Websocket has created. =" + stompClient.toString());
 
     }
 
@@ -124,6 +126,16 @@ public class NotificationService {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         return new HttpEntity<>((T) requestBody, httpHeaders);
+    }
+
+    @EventListener(SessionConnectedEvent.class)
+    public void sessionConnectedEvent(SessionConnectedEvent event) {
+        log.info("asdasdas");
+    }
+
+    @EventListener(SessionConnectEvent.class)
+    public void sessionConnectEvent(SessionConnectEvent event) {
+        log.info("asdasdas");
     }
 
 //    public void createWebHook(WebHook webHook) {

@@ -1,17 +1,18 @@
 package com.netas.cpaas.notification;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.stomp.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.lang.reflect.Type;
 
 @Component
 @Slf4j
-public class NotificationStompSessionHandler implements StompSessionHandler {
+public class NotificationStompSessionHandler extends StompSessionHandlerAdapter {
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -27,7 +28,7 @@ public class NotificationStompSessionHandler implements StompSessionHandler {
     @Override
     public void handleTransportError(StompSession session, Throwable exception) {
 
-        log.error("Error");
+        log.error(exception.getMessage(), exception.getCause());
     }
 
     @Override
@@ -39,6 +40,12 @@ public class NotificationStompSessionHandler implements StompSessionHandler {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         log.info("hi");
+    }
+
+    @EventListener(SessionConnectedEvent.class)
+    public void handleWebsocketConnectListner(SessionConnectedEvent event) {
+        log.info("Received a new web socket connection...");
+        log.info(event.getSource().toString());
     }
 
 
