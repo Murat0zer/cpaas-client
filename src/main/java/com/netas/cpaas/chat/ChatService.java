@@ -1,9 +1,8 @@
 package com.netas.cpaas.chat;
 
 import com.netas.cpaas.HazelCastMapProvider;
-import com.netas.cpaas.chat.model.ChatMessage;
 import com.netas.cpaas.chat.model.notification.CallbackReference;
-import com.netas.cpaas.chat.model.notification.ChatMessageJson;
+import com.netas.cpaas.chat.model.message.ChatMessageJson;
 import com.netas.cpaas.chat.model.notification.ChatNotificationSubscription;
 import com.netas.cpaas.chat.model.notification.ChatSubscriptionJson;
 import com.netas.cpaas.nvs.NvsApiRequestUrl;

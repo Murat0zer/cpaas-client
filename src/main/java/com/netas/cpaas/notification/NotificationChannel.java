@@ -4,9 +4,7 @@ package com.netas.cpaas.notification;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -14,28 +12,30 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Builder
 public class NotificationChannel implements Serializable {
 
     @JsonProperty("callbackURL")
-    public String callbackURL;
+    private String callbackURL;
 
     @JsonProperty("channelData")
-    public ChannelData channelData;
+    private ChannelData channelData;
 
     @JsonProperty("channelLifetime")
-    public Integer channelLifetime;
+    private Integer channelLifetime;
 
     @JsonProperty("channelType")
-    public String channelType;
+    private String channelType;
 
     @JsonProperty("clientCorrelator")
-    public String clientCorrelator;
+    private String clientCorrelator;
 
 //    @JsonProperty("x-connCheckRole")
-//    public String xConnCheckRole;
+//    private String xConnCheckRole;
 
     @JsonProperty("resourceURL")
-    public String resourceURL;
+    private String resourceURL;
 
 }

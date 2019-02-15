@@ -1,24 +1,18 @@
 package com.netas.cpaas.notification;
 
+import com.netas.cpaas.SpringContext;
 import com.netas.cpaas.chat.ChatService;
-import com.netas.cpaas.chat.model.ChatMessage;
-import com.netas.cpaas.chat.model.notification.ChatMessageJson;
+import com.netas.cpaas.chat.model.message.ChatMessage;
+import com.netas.cpaas.chat.model.message.ChatMessageJson;
 import com.netas.cpaas.user.model.User;
-import com.netas.cpaas.user.service.NvsUserService;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.socket.*;
-import org.springframework.web.socket.adapter.NativeWebSocketSession;
 import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 @Component
@@ -34,7 +28,6 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
 
     @Override
     public void handleMessage(@NonNull WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-
         super.handleMessage(session, message);
     }
 
@@ -43,10 +36,11 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
         super.handleTextMessage(session, message);
         log.info(message.getPayload());
         StandardWebSocketSession nativeWebSocketSession = (StandardWebSocketSession) session;
-        Authentication authentication = (Authentication) nativeWebSocketSession.getNativeSession().getUserProperties().get("auth");
+        Object authObject = nativeWebSocketSession.getNativeSession().getUserProperties().get("auth");
+        Authentication authentication = (Authentication) authObject;
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = (User) authentication.getPrincipal();
-        ChatMessage chatMessage = ChatMessage.builder().textMessage("Mesaj alindi :)").build();
+        ChatMessage chatMessage = ChatMessage.builder().text("Mesaj alindi :)").build();
         ChatMessageJson chatMessageJson = ChatMessageJson.builder().chatMessage(chatMessage).build();
         try {
             chatService.sendMessage(user.getNvsUser().getPreferredUsername(), "user2@nts.ipa4.att.com", chatMessageJson);

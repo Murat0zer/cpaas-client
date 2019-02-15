@@ -15,15 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-@EnableWebSocket
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -53,8 +50,9 @@ public class NotificationService {
         NvsApiRequestUrl.setApiName("notificationchannel");
         NvsApiRequestUrl.setApiVersion("v1");
         NvsApiRequestUrl.setUserId(nvsUserService.getNvsUserId());
+
         SubscribeNotificationWebSocketJson requestBody = getRequestBody();
-        requestBody.notificationChannel.clientCorrelator = nvsUserService.getNvsUserId();
+        requestBody.getNotificationChannel().setClientCorrelator(nvsUserService.getNvsUserId());
         this.createWebSocket(requestBody);
     }
 
@@ -62,7 +60,6 @@ public class NotificationService {
 
         log.info("creating websocket for notifications");
 
-        getRequestBody().notificationChannel.clientCorrelator = nvsUserService.getNvsUserId();
         HttpEntity<SubscribeNotificationWebSocketJson> httpEntity;
         httpEntity = prepareRequest(requestBody);
 
@@ -79,10 +76,11 @@ public class NotificationService {
 
         log.info("websocket for notifications has created successfully");
 
-        this.establishWebSocketConnection(Objects.requireNonNull(requestBody).notificationChannel.callbackURL);
+        String callbackURL = Objects.requireNonNull(requestBody).getNotificationChannel().getCallbackURL();
+        this.establishWebSocketConnection(callbackURL);
 
         String mapName = HazelCastMapProvider.MapNames.NOTIFICATION_CHANNELS;
-        hazelCastMapProvider.putToMap(mapName, NvsApiRequestUrl.getUserId(), requestBody.notificationChannel.callbackURL);
+        hazelCastMapProvider.putToMap(mapName, NvsApiRequestUrl.getUserId(), callbackURL);
     }
 
     private void establishWebSocketConnection(String callBackUrl) {
@@ -99,7 +97,7 @@ public class NotificationService {
 
         try {
             WebSocketSession session = client.doHandshake(new WebSocketHandler(), url, uriVariableValue).get();
-            HazelCastMapProvider.getWebSocketMap().put(nvsUserService.getNvsUserId(), session);
+            HazelCastMapProvider.getNvsWebSocketMap().put(nvsUserService.getNvsUserId(), session);
         } catch (Exception e) {
             log.error("Error while creating websocket !!");
             log.info(e.getMessage());

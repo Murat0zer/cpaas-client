@@ -1,8 +1,9 @@
-package com.netas.cpaas.notification;
+package com.netas.cpaas;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,7 +23,7 @@ public class SpringContext implements ApplicationContextAware {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
 
         // store ApplicationContext reference to access required beans later on
         SpringContext.context = context;

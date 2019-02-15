@@ -15,7 +15,7 @@ public class HazelCastMapProvider {
 
     private final HazelcastInstance hazelcastInstance;
 
-    private static Map<String, WebSocketSession> webSocketMap = new ConcurrentHashMap<>();
+    private static Map<String, WebSocketSession> nvsWebSocketMap = new ConcurrentHashMap<>();
 
     public IMap<String, Object> getMap(String mapName) {
         return hazelcastInstance.getMap(mapName);
@@ -25,8 +25,8 @@ public class HazelCastMapProvider {
         hazelcastInstance.getMap(mapName).put(key, value);
     }
 
-    public static Map<String, WebSocketSession> getWebSocketMap() {
-        return webSocketMap;
+    public static Map<String, WebSocketSession> getNvsWebSocketMap() {
+        return nvsWebSocketMap;
     }
 
     public Object getValue(String mapName, String key) {
