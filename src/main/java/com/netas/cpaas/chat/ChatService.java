@@ -3,6 +3,7 @@ package com.netas.cpaas.chat;
 import com.netas.cpaas.HazelCastMapProvider;
 import com.netas.cpaas.chat.model.ChatMessage;
 import com.netas.cpaas.chat.model.notification.CallbackReference;
+import com.netas.cpaas.chat.model.notification.ChatMessageJson;
 import com.netas.cpaas.chat.model.notification.ChatNotificationSubscription;
 import com.netas.cpaas.chat.model.notification.ChatSubscriptionJson;
 import com.netas.cpaas.nvs.NvsApiRequestUrl;
@@ -30,21 +31,24 @@ public class ChatService {
     private final NvsUserService nvsUserService;
 
 
-    public ChatMessage sendMessage(String userId, String otherUserId, ChatMessage chatMessage) {
+    public void sendMessage(String userId, String otherUserPrimaryContact, ChatMessageJson chatMessage) {
 
-        String url = NvsApiRequestUrl.getUrlForApiRequest() + "/" + userId + "/oneToOne/" + otherUserId + "/adhoc/messages";
+        NvsApiRequestUrl.setUserId(userId);
+        NvsApiRequestUrl.setApiVersion("v1");
+        NvsApiRequestUrl.setApiName("chat");
+
+        String url = NvsApiRequestUrl.getUrlForApiRequest() + "/oneToOne/" + otherUserPrimaryContact + "/adhoc/messages";
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
-        String mapName = HazelCastMapProvider.MapNames.NVS_TOKEN;
-        Object token = hazelCastMapProvider.getValue(mapName, nvsProjectProperties.getProjectId());
+        Object token = nvsUserService.getNvsTokenInfo().getAccessToken();
         httpHeaders.setBearerAuth(token.toString());
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<ChatMessage> request = new HttpEntity<>(chatMessage, httpHeaders);
+        HttpEntity<ChatMessageJson> request = new HttpEntity<>(chatMessage, httpHeaders);
 
         ResponseEntity<Object> responseEntity = restTemplate.postForEntity(url, request, Object.class);
-        return (ChatMessage) responseEntity.getBody();
+        Object object = responseEntity.getBody();
     }
 
     public void subscribeChatServiceNotifications() {

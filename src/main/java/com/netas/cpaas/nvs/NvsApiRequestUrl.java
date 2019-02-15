@@ -24,14 +24,6 @@ public class NvsApiRequestUrl {
 
     }
 
-    public static void configureApiRequest(NvsApiRequestProperties nvsApiRequestProperties) {
-
-        NvsApiRequestUrl.apiName = nvsApiRequestProperties.getApiName();
-        NvsApiRequestUrl.apiVersion = nvsApiRequestProperties.getApiVersion();
-        NvsApiRequestUrl.userId = nvsApiRequestProperties.getUserId();
-
-    }
-
     public static String getApiName() {
         return apiName;
     }

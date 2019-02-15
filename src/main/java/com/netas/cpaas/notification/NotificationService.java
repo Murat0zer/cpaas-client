@@ -5,26 +5,23 @@ import com.netas.cpaas.nvs.NvsApiRequestUrl;
 import com.netas.cpaas.user.service.NvsUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
-import org.springframework.web.socket.messaging.SessionConnectedEvent;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import javax.annotation.PostConstruct;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @EnableWebSocket
 @Slf4j
@@ -38,11 +35,9 @@ public class NotificationService {
 
     private final HazelCastMapProvider hazelCastMapProvider;
 
-    private SubscribeNotificationWebSocketJson requestBody;
+    private SubscribeNotificationWebSocketJson getRequestBody() {
 
-    @PostConstruct
-    public void init() {
-
+        SubscribeNotificationWebSocketJson requestBody;
         NotificationChannel notificationChannel = NotificationChannel.builder()
                 .clientCorrelator("")
                 .channelType("WebSockets")
@@ -51,21 +46,23 @@ public class NotificationService {
         requestBody = SubscribeNotificationWebSocketJson.builder()
                 .notificationChannel(notificationChannel)
                 .build();
+        return requestBody;
     }
 
     public void subscribeNotifications() {
         NvsApiRequestUrl.setApiName("notificationchannel");
         NvsApiRequestUrl.setApiVersion("v1");
         NvsApiRequestUrl.setUserId(nvsUserService.getNvsUserId());
-
-        this.createWebSocket();
+        SubscribeNotificationWebSocketJson requestBody = getRequestBody();
+        requestBody.notificationChannel.clientCorrelator = nvsUserService.getNvsUserId();
+        this.createWebSocket(requestBody);
     }
 
-    private void createWebSocket() {
+    private void createWebSocket(SubscribeNotificationWebSocketJson requestBody) {
 
         log.info("creating websocket for notifications");
 
-        requestBody.notificationChannel.clientCorrelator = nvsUserService.getNvsUserId();
+        getRequestBody().notificationChannel.clientCorrelator = nvsUserService.getNvsUserId();
         HttpEntity<SubscribeNotificationWebSocketJson> httpEntity;
         httpEntity = prepareRequest(requestBody);
 
@@ -91,33 +88,26 @@ public class NotificationService {
     private void establishWebSocketConnection(String callBackUrl) {
 
         log.info("creating actual websocket...");
-
         String url = NvsApiRequestUrl.getUrlForWebSocket() + "/channels" + "/" + callBackUrl + "/websocket?access_token={keyword}";
-        WebSocketClient webSocketClient = new StandardWebSocketClient();
-        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
-        stompClient.setMessageConverter(new StringMessageConverter());
-
         String uriVariableValue = nvsUserService.getNvsTokenInfo().getAccessToken();
+        StandardWebSocketClient client = new StandardWebSocketClient();
 
-        WebSocketClient client = new StandardWebSocketClient();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, Object> userProperties = new ConcurrentHashMap<>();
+        userProperties.put("auth", authentication);
+        client.setUserProperties(userProperties);
+
         try {
-            WebSocketSession session = client.doHandshake(new SocketHandler(), url, uriVariableValue).get();
-            session.sendMessage(new TextMessage("Hello World test."));
+            WebSocketSession session = client.doHandshake(new WebSocketHandler(), url, uriVariableValue).get();
+            HazelCastMapProvider.getWebSocketMap().put(nvsUserService.getNvsUserId(), session);
         } catch (Exception e) {
+            log.error("Error while creating websocket !!");
             log.info(e.getMessage());
         }
 
-//        try {
-//            stompClient.connect(url, new NotificationStompSessionHandler(), uriVariableValue);
-//        } catch (Exception e) {
-//            log.error("failed to create websocket !");
-//            log.error(e.getMessage());
-//        }
-//        log.info("Websocket has created. =" + stompClient.toString());
-
     }
 
-    private <T> HttpEntity<T> prepareRequest(SubscribeNotificationWebSocketJson requestBody) {
+    private <T> HttpEntity<T> prepareRequest(Object requestBody) {
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -127,54 +117,4 @@ public class NotificationService {
 
         return new HttpEntity<>((T) requestBody, httpHeaders);
     }
-
-    @EventListener(SessionConnectedEvent.class)
-    public void sessionConnectedEvent(SessionConnectedEvent event) {
-        log.info("asdasdas");
-    }
-
-    @EventListener(SessionConnectEvent.class)
-    public void sessionConnectEvent(SessionConnectEvent event) {
-        log.info("asdasdas");
-    }
-
-//    public void createWebHook(WebHook webHook) {
-//        log.info("creating webhook for notifications");
-//        String baseUrl = "https://nvs-cpaas-oauth.kandy.io/cpaas/notificationchannel/v1/";
-//
-//
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//
-//        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-//
-//        NvsTokenInfo nvsTokenInfo = (NvsTokenInfo) hazelCastMapProvider
-//                .getMap(HazelCastMapProvider.getNvsTokenMapName()).get(nvsProjectProperties.getProjectId());
-//
-//        httpHeaders.setBearerAuth(nvsTokenInfo.getAccessToken());
-//
-//
-//        String idToken = ((NvsTokenInfo) hazelCastMapProvider.getMap(HazelCastMapProvider.getNvsTokenMapName())
-//                .get(nvsProjectProperties.getProjectId())).getIdToken();
-//
-//        String cpaasUserId = NvsUserUtils.getNvsUserFromIdToken(idToken).getPreferredUsername();
-//        String url = baseUrl + cpaasUserId + "/channels";
-//
-//
-//        HttpEntity<WebHook> httpEntity = new HttpEntity<>(webHook, httpHeaders);
-//
-//        ResponseEntity<WebHook> responseEntity;
-//        try {
-//            responseEntity = restTemplate.postForEntity(url, httpEntity, WebHook.class);
-//        } catch (HttpClientErrorException e) {
-//            log.error(e.getResponseBodyAsString(),  e.getStatusCode().toString());
-//            log.error("creating webhook has failed.");
-//            throw e;
-//        }
-//        webHook = responseEntity.getBody();
-//
-//        log.info("webhook created successfully");
-//
-//    }
-
-
 }
