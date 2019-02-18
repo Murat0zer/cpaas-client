@@ -1,8 +1,8 @@
 <html>
 <head>
     <title>Chat WebSocket</title>
-    <script src="./js/sockjs-0.3.4.js"></script>
-    <script src="./js/stomp.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
     <script type="text/javascript">
         var stompClient = null;
 
@@ -16,18 +16,18 @@
 
         function connect() {
             var socket = new SockJS('/websocket');
-            stompClient = Stomp.over(socket);
-            stompClient.connect({}, function(frame) {
+            stompClient = StompJs.client(socket);
+            stompClient.connect({}, function (frame) {
                 setConnected(true);
                 console.log('Connected: ' + frame);
-                stompClient.subscribe('/notifications', function(messageOutput) {
+                stompClient.subscribe('/notifications', function (messageOutput) {
                     showMessageOutput(JSON.parse(messageOutput.body));
                 });
             });
         }
 
         function disconnect() {
-            if(stompClient != null) {
+            if (stompClient != null) {
                 stompClient.disconnect();
             }
             setConnected(false);
@@ -38,7 +38,7 @@
             var from = document.getElementById('from').value;
             var text = document.getElementById('text').value;
             stompClient.send("/api/user/chat", {},
-                JSON.stringify({'from':from, 'text':text}));
+                JSON.stringify({'from': from, 'text': text}));
         }
 
         function showMessageOutput(messageOutput) {
@@ -54,18 +54,18 @@
 <body onload="disconnect()">
 <div>
     <div>
-        <input type="text" id="from" placeholder="Choose a nickname"/>
+        <input id="from" placeholder="Choose a nickname" type="text"/>
     </div>
-    <br />
+    <br/>
     <div>
         <button id="connect" onclick="connect();">Connect</button>
-        <button id="disconnect" disabled="disabled" onclick="disconnect();">
+        <button disabled="disabled" id="disconnect" onclick="disconnect();">
             Disconnect
         </button>
     </div>
-    <br />
+    <br/>
     <div id="conversationDiv">
-        <input type="text" id="text" placeholder="Write a message..."/>
+        <input id="text" placeholder="Write a message..." type="text"/>
         <button id="sendMessage" onclick="sendMessage();">Send</button>
         <p id="response"></p>
     </div>
