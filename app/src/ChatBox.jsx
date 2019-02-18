@@ -6,7 +6,7 @@ import {TalkBox} from "react-talk";
 
 const randomString = require("random-string");
 
-class App extends React.Component {
+class ChatBox extends React.Component {
     constructor(props) {
         super(props);
         // randomUserId is used to emulate a unique user id for this demo usage
@@ -71,5 +71,4 @@ class App extends React.Component {
     }
 }
 
-export default App
-ReactDom.render(<App/>, document.getElementById("root"));
+export default ChatBox
