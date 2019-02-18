@@ -7,6 +7,7 @@ import com.netas.cpaas.chat.model.message.ChatMessageJson;
 import com.netas.cpaas.user.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
 
     private final ChatService chatService = SpringContext.getBean(ChatService.class);
 
+    private final SimpMessagingTemplate simpMessagingTemplate = SpringContext.getBean(SimpMessagingTemplate.class);
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
@@ -40,13 +42,10 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
         Authentication authentication = (Authentication) authObject;
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = (User) authentication.getPrincipal();
-        ChatMessage chatMessage = ChatMessage.builder().text("Mesaj alindi :)").build();
+        ChatMessage chatMessage = ChatMessage.builder().text(message.getPayload()).build();
+
         ChatMessageJson chatMessageJson = ChatMessageJson.builder().chatMessage(chatMessage).build();
-        try {
-            chatService.sendMessage(user.getNvsUser().getPreferredUsername(), "user2@nts.ipa4.att.com", chatMessageJson);
-        } catch (HttpClientErrorException e) {
-            log.error(e.getResponseBodyAsString(), e.getStatusText());
-        }
+        simpMessagingTemplate.convertAndSendToUser(user.getUsername(), "/notifications/{username}", chatMessageJson);
     }
 
     @Override

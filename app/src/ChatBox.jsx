@@ -1,8 +1,8 @@
 import React from "react";
-import ReactDom from "react-dom";
 import SockJsClient from "react-stomp";
 import UsernameGenerator from "username-generator";
 import {TalkBox} from "react-talk";
+import {connect} from "react-redux";
 
 const randomString = require("random-string");
 
@@ -14,17 +14,18 @@ class ChatBox extends React.Component {
         this.randomUserId = randomString({length: 20})
         this.state = {
             clientConnected: false,
-            messages: []
+            messages: ["Test"]
         };
+
     }
 
     onMessageReceive = (msg, topic) => {
-        console.log(msg.chatMessage.text)
+        console.log(msg.chatMessage.text);
         this.setState(prevState => ({
             messages: [...prevState.messages, msg.chatMessage.text]
         }));
 
-    }
+    };
 
     sendMessage = (msg, selfMsg) => {
         let chatMessage = {
@@ -32,8 +33,11 @@ class ChatBox extends React.Component {
                 "text": selfMsg.message.toString()
             }
         };
+
+        const {user} = this.props;
+        const receiver = user.username === 'user1' ? 'user2' : 'user1';
         try {
-            this.clientRef.sendMessage("/user/chat", JSON.stringify(chatMessage));
+            this.clientRef.sendMessage(`/user/${user.username}/chat/${receiver}`, JSON.stringify(chatMessage), {'preferredUsername': user.nvsUser.preferred_username});
             return true;
         } catch (e) {
             return false;
@@ -48,27 +52,47 @@ class ChatBox extends React.Component {
     // }
 
     render() {
-        const wsSourceUrl = "http://localhost:8080/websocket";
+
+        const {user} = this.props;
+
         return (
             <div>
-                <TalkBox topic="react-websocket-template" currentUserId={this.randomUserId}
-                         currentUser={this.randomUserName} messages={this.state.messages}
-                             onSendMessage={this.sendMessage} connected={this.state.clientConnected}/>
+                <TalkBox topic="react-websocket-template"
+                         currentUserId={this.randomUserId}
+                         currentUser={user.firstName}
+                         messages={this.state.messages}
+                         onSendMessage={this.sendMessage}
+                         connected={this.state.clientConnected}
+                />
 
-                <SockJsClient url={wsSourceUrl} topics={["/user/notifications"]}
-                              onMessage={this.onMessageReceive} ref={(client) => {
-                    this.clientRef = client
-                }}
-                              onConnect={() => {
-                                  this.setState({clientConnected: true})
-                              }}
-                              onDisconnect={() => {
-                                  this.setState({clientConnected: false})
-                              }}
-                              debug={false}/>
+                <SockJsClient
+                    headers={{'user': user.nvsUser.preferredUsername}}
+                    url='http://localhost:8080/websocket'
+                    topics={[`/notifications/${user.username}`]}
+                    onMessage={this.onMessageReceive}
+                    ref={(client) => {
+                        this.clientRef = client
+                    }}
+
+                    onConnect={() => {
+                        this.setState({clientConnected: true})
+                    }}
+                    onDisconnect={() => {
+                        this.setState({clientConnected: false})
+                    }}
+                    debug={true}/>
             </div>
         );
     }
 }
 
-export default ChatBox
+function mapStateToProps(state) {
+    const {authentication} = state;
+    const {user} = authentication;
+    return {
+        user
+    };
+}
+
+const connectedChatBox = connect(mapStateToProps)(ChatBox);
+export {connectedChatBox as ChatBox};

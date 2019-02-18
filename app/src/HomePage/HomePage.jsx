@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import { userActions } from '../_actions/user.actions';
-import ChatBox from "../ChatBox";
+import { ChatBox } from "../ChatBox";
 
 class HomePage extends React.Component {
 
     componentDidMount() {
-        this.props.dispatch(userActions.getAll());
+        this.props.dispatch(userActions.getAll()); // get all contacs olur ileride.
     }
 
     handleDeleteUser(id) {
