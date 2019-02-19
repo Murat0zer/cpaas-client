@@ -44,6 +44,19 @@ export function users(state = {}, action) {
                     return user;
                 })
             };
+
+        case userConstants.GET_CONTACTS_REQUEST:
+            return {
+                loading: true
+            };
+        case userConstants.GET_CONTACTS_SUCCESS:
+            return {
+                items: action.contactList
+            };
+        case userConstants.GET_CONTACTS_FAILURE:
+            return {
+                error: action.error
+            };
         default:
             return state
     }

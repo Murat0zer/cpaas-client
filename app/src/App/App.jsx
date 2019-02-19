@@ -1,18 +1,19 @@
 import React from 'react';
-import { Router, Route } from 'react-router-dom';
-import { connect } from 'react-redux';
+import {Route, Router} from 'react-router-dom';
+import {connect} from 'react-redux';
 
-import { history } from '../_helpers/history';
-import { alertActions } from '../_actions/alert.actions';
-import { PrivateRoute } from '../_components/PrivateRoute';
-import { HomePage } from '../HomePage/HomePage';
-import { LoginPage } from '../LoginPage/LoginPage';
+import {history} from '../_helpers/history';
+import {alertActions} from '../_actions/alert.actions';
+import {PrivateRoute} from '../_components/PrivateRoute';
+import {HomePage} from '../HomePage/HomePage';
+import {LoginPage} from '../LoginPage/LoginPage';
+import Container from "reactstrap/es/Container";
 
 class App extends React.Component {
     constructor(props) {
         super(props);
 
-        const { dispatch } = this.props;
+        const {dispatch} = this.props;
         history.listen((location, action) => {
             // clear alert on location change
             dispatch(alertActions.clear());
@@ -20,33 +21,40 @@ class App extends React.Component {
     }
 
     render() {
-        const { alert } = this.props;
+        const {alert} = this.props;
         return (
-            <div className="jumbotron">
-                <div className="container" align="center">
-                    <div className="col-sm-8 col-sm-offset-2">
-                        {alert.message &&
-                        <div className={`alert ${alert.type}`}>{alert.message}</div>
-                        }
-                        <Router history={history}>
-                            <div>
-                                <PrivateRoute exact path="/" component={HomePage} />
-                                <Route path="/login" component={LoginPage} />
-                            </div>
-                        </Router>
-                    </div>
-                </div>
-            </div>
+
+                <Container className="jumbotron">
+                    <Container className="container" align="center">
+                        <Container>
+                            {alert.message &&
+                            <Container className={`alert ${alert.type}`}>{alert.message}</Container>
+                            }
+                            <Router history={history}>
+                                <Container>
+                                    <Container>
+                                        <PrivateRoute exact path="/" component={HomePage}/>
+                                    </Container>
+
+                                    <Container>
+                                        <Route path="/login" component={LoginPage}/>
+                                    </Container>
+                                </Container>
+                            </Router>
+                        </Container>
+                    </Container>
+                </Container>
+
         );
     }
 }
 
 function mapStateToProps(state) {
-    const { alert } = state;
+    const {alert} = state;
     return {
         alert
     };
 }
 
 const connectedApp = connect(mapStateToProps)(App);
-export { connectedApp as App };
+export {connectedApp as App};

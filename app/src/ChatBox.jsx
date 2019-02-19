@@ -14,16 +14,30 @@ class ChatBox extends React.Component {
         this.randomUserId = randomString({length: 20})
         this.state = {
             clientConnected: false,
-            messages: ["Test"]
+            messages: []
         };
 
     }
 
     onMessageReceive = (msg, topic) => {
-        console.log(msg.chatMessage.text);
-        this.setState(prevState => ({
-            messages: [...prevState.messages, msg.chatMessage.text]
-        }));
+
+        console.log(topic);
+        if(msg.chatMessageNotification) {
+            let text = msg.chatMessageNotification.chatMessage.text;
+
+            let message = {
+                "author": msg.chatMessageNotification.chatMessage.senderAddress.split("@")[0],
+                "authorId": msg.chatMessageNotification.chatMessage.senderAddress.split("@")[0],
+                "message": text,
+                "timestamp": Date.now().toString(),
+                "status": msg.chatMessageNotification.chatMessage.status
+            };
+
+            console.log(text);
+            this.setState(prevState => ({
+                messages: [...prevState.messages, message]
+            }));
+        }
 
     };
 
@@ -37,11 +51,18 @@ class ChatBox extends React.Component {
         const {user} = this.props;
         const receiver = user.username === 'user1' ? 'user2' : 'user1';
         try {
-            this.clientRef.sendMessage(`/user/${user.username}/chat/${receiver}`, JSON.stringify(chatMessage), {'preferredUsername': user.nvsUser.preferred_username});
+            this.clientRef.sendMessage(`/user/${user.username}/chat/${receiver}`, JSON.stringify(chatMessage));
+            this.setState(prevState => ({
+                messages: [...prevState.messages, selfMsg]
+            }));
+            console.log(selfMsg)
             return true;
         } catch (e) {
             return false;
         }
+
+
+
     };
     // componentWillMount() {
     //   Fetch("/history", {
@@ -57,7 +78,7 @@ class ChatBox extends React.Component {
 
         return (
             <div>
-                <TalkBox topic="react-websocket-template"
+                <TalkBox topic="Chat with "
                          currentUserId={this.randomUserId}
                          currentUser={user.firstName}
                          messages={this.state.messages}
@@ -66,9 +87,9 @@ class ChatBox extends React.Component {
                 />
 
                 <SockJsClient
-                    headers={{'user': user.nvsUser.preferredUsername}}
+                    headers={{'x-auth-token': user.token}}
                     url='http://localhost:8080/websocket'
-                    topics={[`/notifications/${user.username}`]}
+                    topics={[`/user/notifications`]}
                     onMessage={this.onMessageReceive}
                     ref={(client) => {
                         this.clientRef = client
@@ -80,17 +101,18 @@ class ChatBox extends React.Component {
                     onDisconnect={() => {
                         this.setState({clientConnected: false})
                     }}
-                    debug={true}/>
+                    debug={false}/>
             </div>
         );
     }
 }
 
 function mapStateToProps(state) {
-    const {authentication} = state;
+    const {authentication, contacts } = state;
     const {user} = authentication;
     return {
-        user
+        user,
+        contacts
     };
 }
 

@@ -1,7 +1,10 @@
 package com.netas.cpaas.notification;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netas.cpaas.SpringContext;
 import com.netas.cpaas.chat.ChatService;
+import com.netas.cpaas.chat.model.chatmessagenotification.ChatMessageNotification;
+import com.netas.cpaas.chat.model.chatmessagenotification.ChatMessageNotificationJson;
 import com.netas.cpaas.chat.model.message.ChatMessage;
 import com.netas.cpaas.chat.model.message.ChatMessageJson;
 import com.netas.cpaas.user.model.User;
@@ -36,16 +39,31 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
-        log.info(message.getPayload());
+
         StandardWebSocketSession nativeWebSocketSession = (StandardWebSocketSession) session;
         Object authObject = nativeWebSocketSession.getNativeSession().getUserProperties().get("auth");
         Authentication authentication = (Authentication) authObject;
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = (User) authentication.getPrincipal();
-        ChatMessage chatMessage = ChatMessage.builder().text(message.getPayload()).build();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        ChatMessageJson chatMessageJson = ChatMessageJson.builder().chatMessage(chatMessage).build();
-        simpMessagingTemplate.convertAndSendToUser(user.getUsername(), "/notifications/{username}", chatMessageJson);
+        try {
+            log.info(message.getPayload());
+            ObjectMapper objectMapper = new ObjectMapper();
+            ChatMessageNotificationJson chatMessageNotificationJson = ChatMessageNotificationJson.builder().build();
+            try {
+                chatMessageNotificationJson =  objectMapper.readValue(message.getPayload(), ChatMessageNotificationJson.class);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e.getCause());
+            }
+            String dest = chatMessageNotificationJson.getChatMessageNotification().getChatMessage().getXDestinationAddress();
+
+            if(dest.equals(user.getNvsUser().getServicesIdentity()))
+                simpMessagingTemplate.convertAndSendToUser(user.getUsername(), "/notifications", chatMessageNotificationJson);
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e.getCause());
+        }
+
     }
 
     @Override

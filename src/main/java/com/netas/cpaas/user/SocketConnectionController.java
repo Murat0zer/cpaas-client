@@ -4,6 +4,7 @@ import com.netas.cpaas.SpringContext;
 import com.netas.cpaas.chat.ChatService;
 import com.netas.cpaas.chat.model.message.ChatMessage;
 import com.netas.cpaas.chat.model.message.ChatMessageJson;
+import com.netas.cpaas.security.JwtTokenProvider;
 import com.netas.cpaas.user.model.User;
 import com.netas.cpaas.user.service.NvsUserService;
 import lombok.RequiredArgsConstructor;
@@ -34,18 +35,18 @@ public class SocketConnectionController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
+    private final JwtTokenProvider jwtTokenProvider;
+
     @MessageMapping("/{sender}/chat/{receiver}")
-    @SendTo("/notifications/{username}")
-    public ChatMessageJson test (@DestinationVariable String sender,
+    public void test (@DestinationVariable String sender,
                                  @DestinationVariable String receiver,
                                  @Payload ChatMessageJson chatMessageJson,
-                                 @Header String preferredUsername) {
+                                 Principal principal) {
 
+        SecurityContextHolder.getContext().setAuthentication((Authentication) principal);
         log.info(chatMessageJson.chatMessage.getText());
         String domain = "@nts.ipa4.att.com";
         String receiverAddress = receiver + domain;
-        chatService.sendMessage(preferredUsername, receiverAddress, chatMessageJson);
-
-        return chatMessageJson;
+        chatService.sendMessage(nvsUserService.getNvsUserId(), receiverAddress, chatMessageJson);
     }
 }

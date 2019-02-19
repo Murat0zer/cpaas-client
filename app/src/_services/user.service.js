@@ -7,7 +7,8 @@ export const userService = {
     getAll,
     getById,
     update,
-    delete: _delete
+    delete: _delete,
+    getContacts
 };
 
 const apiUrl = 'http://localhost:8080/api';
@@ -30,6 +31,16 @@ function login(username, password) {
 function logout() {
     // remove user from local storage to log user out
     localStorage.removeItem('user');
+}
+
+function getContacts(username) {
+    const requestOptions = {
+        method: 'GET',
+        headers: authHeader()
+    };
+
+    return fetch(`${apiUrl}/users/${username}/contacts`, requestOptions).then(handleResponse);
+
 }
 
 function getAll() {
