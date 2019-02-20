@@ -9,10 +9,12 @@ import {Col, Row} from "reactstrap";
 import Container from "reactstrap/es/Container";
 import {MyTextInput} from "../_components/MyTextInput";
 import Header from "../_components/Header";
+import {PaperSheet} from "../_components/PaperSheet";
 
 class HomePage extends React.Component {
 
     componentDidMount() {
+        const { user } = this.props;
         this.props.dispatch(userActions.getAll()); // get all contacs olur ileride.
     }
 
@@ -21,7 +23,7 @@ class HomePage extends React.Component {
     }
 
     render() {
-        const {user, users} = this.props;
+        const {user} = this.props;
         return (
             <Container>
                 <Row >
@@ -41,7 +43,18 @@ class HomePage extends React.Component {
                 </Row>
                 <Row>
                     <Col xs="4">
-                        <ContactList/>
+                        <Row>
+                           <Col xs={'12'}>
+                                <PaperSheet />
+                           </Col>
+                        </Row>
+
+                        <Row>
+                            <Col xs={'12'}>
+                                <ContactList/>
+                            </Col>
+                        </Row>
+
                         <Row>
                             <Col xs="12">
                                 <MyTextInput/>

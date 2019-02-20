@@ -1,4 +1,4 @@
-import { authHeader } from '../_helpers/auth-header';
+import {authHeader} from '../_helpers/auth-header';
 
 export const userService = {
     login,
@@ -8,7 +8,7 @@ export const userService = {
     getById,
     update,
     delete: _delete,
-    getContacts
+    getContacts,
 };
 
 const apiUrl = 'http://localhost:8080/api';
@@ -39,8 +39,9 @@ function getContacts(username) {
         headers: authHeader()
     };
 
-    return fetch(`${apiUrl}/users/${username}/contacts`, requestOptions).then(handleResponse);
+    fetch(`${apiUrl}/users/${username}/contacts`, requestOptions).then(handleResponse);
 
+    return Promise.resolve( {'userNames':['user1','user2']})
 }
 
 function getAll() {

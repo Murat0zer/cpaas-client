@@ -14,27 +14,28 @@ export const userActions = {
 
 function getContacts(username) {
     return dispatch => {
-        dispatch(request());
+        dispatch(request(username));
 
-        userService.getContacts(username)
+        userService.getContacts()
             .then(
-                contactList => {
-                    dispatch(success(contactList))
+                contacts => {
+                    dispatch(success(contacts))
                 },
                 error => {
                     dispatch(failure(error.toString()));
                     dispatch(alertActions.error(error.toString()));
                 }
-            )
+            );
     };
 
-    function request() {
-        return {type: userConstants.GET_CONTACTS_REQUEST}
+    function request(username) {
+        return {type: userConstants.GET_CONTACTS_REQUEST, username}
     }
 
-    function success(contactList) {
-        return {type: userConstants.GET_CONTACTS_SUCCESS, contactList}
+    function success(contacts) {
+        return {type: userConstants.GET_CONTACTS_SUCCESS, contacts}
     }
+
     function failure(error) {
         return {type: userConstants.GET_CONTACTS_FAILURE, error}
     }

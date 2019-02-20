@@ -4,15 +4,21 @@ export function users(state = {}, action) {
     switch (action.type) {
         case userConstants.GETALL_REQUEST:
             return {
+                ...state,
                 loading: true
             };
         case userConstants.GETALL_SUCCESS:
             return {
+                ...state,
+                loading: false,
                 items: action.users
             };
         case userConstants.GETALL_FAILURE:
             return {
+                ...state,
+                loading: false,
                 error: action.error
+
             };
         case userConstants.DELETE_REQUEST:
             // add 'deleting:true' property to user being deleted
@@ -47,14 +53,18 @@ export function users(state = {}, action) {
 
         case userConstants.GET_CONTACTS_REQUEST:
             return {
+                ...state,
                 loading: true
             };
         case userConstants.GET_CONTACTS_SUCCESS:
             return {
-                items: action.contactList
+                ...state,
+                contacts : {'userNames' : ['user1','user2']},
+                loading: false
             };
         case userConstants.GET_CONTACTS_FAILURE:
             return {
+                ...state,
                 error: action.error
             };
         default:

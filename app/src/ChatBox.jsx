@@ -48,8 +48,9 @@ class ChatBox extends React.Component {
             }
         };
 
-        const {user} = this.props;
-        const receiver = user.username === 'user1' ? 'user2' : 'user1';
+        const {user, selectedUser} = this.props;
+        // const receiver = user.username === 'user1' ? 'user2' : 'user1';
+        const receiver = selectedUser;
         try {
             this.clientRef.sendMessage(`/user/${user.username}/chat/${receiver}`, JSON.stringify(chatMessage));
             this.setState(prevState => ({
@@ -106,13 +107,14 @@ class ChatBox extends React.Component {
         );
     }
 }
-
+//////////////
 function mapStateToProps(state) {
-    const {authentication, contacts } = state;
+    const {authentication, contacts, chat } = state;
     const {user} = authentication;
     return {
         user,
-        contacts
+        contacts,
+        chat
     };
 }
 
